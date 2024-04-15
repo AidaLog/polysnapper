@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Draw Polygons on Google Maps</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <button onclick="exportToCSV()">Export to CSV</button>
+
+    <script>
+        // Initialize Google Maps
+        var map;
+        var drawingManager;
+        var polygons = [];
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 0, lng: 0 },
+                zoom: 2
+            });
+
+            // Initialize Drawing Manager
+            drawingManager = new google.maps.drawing.DrawingManager({
+                drawingMode: google.maps.drawing.OverlayType.POLYGON,
+                drawingControl: true,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                    drawingModes: [google.maps.drawing.OverlayType.POLYGON]
+                },
+                polygonOptions: {
+                    editable: true
+                }
+            });
+            drawingManager.setMap(map);
+
+            // Add event listener for when a polygon is complete
+            google.maps.event.addListener(drawingManager, 'polygoncomplete', function (polygon) {
+                polygons.push(polygon);
+            });
+        }
+
+        // Export polygons to CSV
+        function exportToCSV() {
+            var csvContent = "data:text/csv;charset=utf-8,";
+            polygons.forEach(function (polygon) {
+                var vertices = polygon.getPath().getArray();
+                vertices.forEach(function (vertex) {
+                    csvContent += vertex.lat() + "," + vertex.lng() + "\n";
+                });
+            });
+
+            // Create a link to download the CSV file
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "polygon_vertices.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+    </script>
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCF0mQY_JNlj_8dQ66URVWiaMSPo83zPsQ&libraries=drawing&callback=initMap"
+        async defer></script>
+</body>
+
+</html>
